@@ -1,0 +1,313 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f8fc">
+    <meta name="description" content="Clear Metrics — a modern workspace to import, clean, explore and analyze data.">
+    <title>Clear Metrics — Analytics Workspace</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+<div class="app-shell">
+
+    <aside class="sidebar" id="sidebar">
+        <a class="brand" href="#overview" data-screen="overview">
+            <span class="brand-mark">↗</span>
+            <span class="brand-copy">
+                <strong>clear<span>metrics</span></strong>
+                <small>ANALYTICS WORKSPACE</small>
+            </span>
+        </a>
+
+        <div class="workspace-switcher">
+            <span class="workspace-avatar">C</span>
+            <span><strong>My workspace</strong><small>Personal workspace</small></span>
+            <span class="switcher-arrow">⌄</span>
+        </div>
+
+        <p class="nav-caption">WORKSPACE</p>
+        <nav class="navigation" aria-label="Main navigation">
+            <a href="#overview" class="nav-link active" data-screen="overview"><span>▦</span> Overview</a>
+            <a href="#upload" class="nav-link" data-screen="upload"><span>↥</span> Import data</a>
+            <a href="#clean" class="nav-link" data-screen="clean"><span>✳</span> Data cleaning</a>
+            <a href="#insights" class="nav-link" data-screen="insights"><span>◈</span> Insights</a>
+            <p class="nav-caption nav-caption-tools">TOOLS</p>
+            <a href="#sql" class="nav-link" data-screen="sql"><span>⌘</span> SQL Lab <small class="nav-tag">SQL</small></a>
+            <a href="#export" class="nav-link" data-screen="export"><span>↗</span> Export reports</a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="sidebar-promo">
+                <span class="promo-icon">✦</span>
+                <strong>Your data, clearer.</strong>
+                <p>Turn raw files into useful insights.</p>
+                <a href="#upload" data-screen="upload">Start exploring →</a>
+            </div>
+            <div class="sidebar-profile">
+                <span class="profile-avatar">CM</span>
+                <span><strong>Workspace owner</strong><small>Local session</small></span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="icon-button mobile-menu" id="menuToggle" type="button" aria-label="Toggle menu">☰</button>
+                <div class="breadcrumb"><span>Workspace</span><span>/</span><strong id="breadcrumbTitle">Overview</strong></div>
+            </div>
+            <div class="topbar-actions">
+                <span class="workspace-status"><i></i> Workspace ready</span>
+                <button class="icon-button" id="refreshDashboard" type="button" title="Refresh">↻</button>
+                <button class="icon-button" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme">☼</button>
+                <span class="topbar-avatar">CM</span>
+            </div>
+        </header>
+
+        <!-- OVERVIEW -->
+        <section class="screen active" id="screen-overview">
+            <div class="page-container">
+                <div class="welcome-row">
+                    <div>
+                        <div class="eyebrow"><i></i> YOUR ANALYTICS WORKSPACE</div>
+                        <h1>Make your data <span>make sense.</span></h1>
+                        <p class="page-description">Import, improve and explore your data in one clear workspace.</p>
+                    </div>
+                    <a href="#upload" data-screen="upload" class="primary-button">＋ Import dataset</a>
+                </div>
+
+                <div class="dataset-banner">
+                    <div class="dataset-file-icon">▤</div>
+                    <div class="dataset-banner-copy">
+                        <span class="micro-label">CURRENT DATASET</span>
+                        <strong id="currentDataset">No dataset loaded</strong>
+                        <small id="datasetDescription">Import a CSV or Excel file to get started.</small>
+                    </div>
+                    <a class="text-link" href="#upload" data-screen="upload">Change dataset →</a>
+                </div>
+
+                <div class="section-heading">
+                    <div><h2>At a glance</h2><p>A quick overview of your current dataset.</p></div>
+                    <span class="section-chip">LIVE OVERVIEW</span>
+                </div>
+
+                <div class="metric-grid">
+                    <article class="metric-card"><div class="metric-top"><span>Total records</span><b class="metric-icon purple">▤</b></div><strong id="totalRows">—</strong><small>Rows in your dataset</small></article>
+                    <article class="metric-card"><div class="metric-top"><span>Data fields</span><b class="metric-icon teal">▥</b></div><strong id="totalColumns">—</strong><small>Columns available</small></article>
+                    <article class="metric-card"><div class="metric-top"><span>Missing values</span><b class="metric-icon amber">∅</b></div><strong id="missingValues">—</strong><small>Cells needing attention</small></article>
+                    <article class="metric-card"><div class="metric-top"><span>Duplicate rows</span><b class="metric-icon rose">⧉</b></div><strong id="duplicateRows">—</strong><small>Repeated records</small></article>
+                </div>
+
+                <div class="charts-grid">
+                    <article class="panel">
+                        <div class="panel-heading"><div><h3 id="trendTitle">Dataset trend</h3><p id="trendDescription">How a numeric measure changes over time.</p></div><span class="chart-chip">TREND</span></div>
+                        <div class="chart-container"><canvas id="trendChart"></canvas><div class="chart-empty" id="trendEmpty">Load data to see a trend chart.</div></div>
+                    </article>
+                    <article class="panel">
+                        <div class="panel-heading"><div><h3 id="categoryTitle">Category distribution</h3><p id="categoryDescription">Compare the most common categories.</p></div><span class="chart-chip">DISTRIBUTION</span></div>
+                        <div class="chart-container"><canvas id="categoryChart"></canvas><div class="chart-empty" id="categoryEmpty">Load data to see the distribution.</div></div>
+                    </article>
+                    <article class="panel">
+                        <div class="panel-heading"><div><h3 id="distributionTitle">Value distribution</h3><p id="distributionDescription">Understand the spread of a numeric field.</p></div><span class="chart-chip">DISTRIBUTION</span></div>
+                        <div class="chart-container"><canvas id="distributionChart"></canvas><div class="chart-empty" id="distributionEmpty" hidden>A numeric column is needed for this chart.</div></div>
+                    </article>
+                    <article class="panel">
+                        <div class="panel-heading"><div><h3 id="relationshipTitle">Numeric relationship</h3><p id="relationshipDescription">Explore how two numeric fields relate.</p></div><span class="chart-chip">RELATIONSHIP</span></div>
+                        <div class="chart-container"><canvas id="relationshipChart"></canvas><div class="chart-empty" id="relationshipEmpty" hidden>Two numeric columns are needed for this chart.</div></div>
+                    </article>
+                </div>
+
+                <div class="section-heading"><div><h2>Insights & analysis</h2><p>Useful observations about your current dataset.</p></div></div>
+                <div id="insightsContainer" class="insights-grid">
+                    <div class="empty-state">Your dataset insights will appear here after you load data.</div>
+                </div>
+
+                <div class="section-heading"><div><h2>Dataset preview</h2><p>A quick look at the first records.</p></div><span class="section-chip">PREVIEW</span></div>
+                <div class="panel table-panel"><div id="previewTable" class="table-wrap"><div class="empty-state">No dataset loaded yet.</div></div></div>
+            </div>
+        </section>
+
+        <!-- IMPORT -->
+        <section class="screen" id="screen-upload" hidden>
+            <div class="page-container">
+                <div class="page-heading">
+                    <div class="eyebrow"><i></i> DATA INPUT</div>
+                    <h1>Bring your data <span>into focus.</span></h1>
+                    <p class="page-description">Upload a CSV or Excel file, or explore Clear Metrics with the included sample dataset.</p>
+                </div>
+
+                <div class="upload-layout">
+                    <article class="panel upload-panel">
+                        <div class="panel-heading"><div><h3>Import a dataset</h3><p>Choose a file from your computer.</p></div><span class="metric-icon purple">↥</span></div>
+                        <form id="uploadForm">
+                            <label class="drop-zone" id="dropZone" for="fileInput">
+                                <span class="drop-icon">↥</span>
+                                <strong>Drop your file here</strong>
+                                <span>or <u>browse files</u></span>
+                                <small>CSV, XLSX or XLS</small>
+                                <input type="file" id="fileInput" name="file" accept=".csv,.xlsx,.xls" hidden>
+                            </label>
+                            <div class="selected-file" id="selectedFile">No file selected</div>
+                            <button type="submit" class="primary-button full-button" id="uploadButton">Upload dataset →</button>
+                        </form>
+                    </article>
+                    <article class="panel sample-panel">
+                        <span class="sample-art">✳</span>
+                        <span class="micro-label">NEW TO CLEAR METRICS?</span>
+                        <h2>Start with sample data.</h2>
+                        <p>Explore the dashboard and cleaning tools without preparing a file first.</p>
+                        <button type="button" id="sampleButton" class="secondary-button full-button">Load sample dataset</button>
+                    </article>
+                </div>
+
+                <div class="section-heading"><div><h2>What happens next?</h2><p>Your workflow from raw file to useful insight.</p></div></div>
+                <div class="steps-grid">
+                    <article class="step-card"><span>01</span><h3>Import</h3><p>Load a CSV or Excel dataset.</p></article>
+                    <article class="step-card"><span>02</span><h3>Clean</h3><p>Handle missing values and duplicates.</p></article>
+                    <article class="step-card"><span>03</span><h3>Explore</h3><p>Review metrics, charts and data quality.</p></article>
+                    <article class="step-card"><span>04</span><h3>Export</h3><p>Download your analysis and cleaned data.</p></article>
+                </div>
+            </div>
+        </section>
+
+        <!-- DATA CLEANING -->
+        <section class="screen" id="screen-clean" hidden>
+            <div class="page-container clean-workspace">
+                <div class="clean-hero">
+                    <div>
+                        <div class="eyebrow"><i></i> DATA QUALITY STUDIO</div>
+                        <h1>Make your data <span>decision-ready.</span></h1>
+                        <p class="page-description">Detect issues, choose cleaning strategies and review the results before moving forward.</p>
+                    </div>
+                    <div class="clean-hero-mark" aria-hidden="true">✳</div>
+                </div>
+
+                <div class="clean-status-strip">
+                    <div class="clean-status-left"><span class="clean-status-indicator"></span><div><strong id="cleanDatasetName">No dataset loaded</strong><small id="cleanDatasetMeta">Import a dataset to begin quality checks.</small></div></div>
+                    <span class="clean-status-label">WORKSPACE / CLEAN</span>
+                </div>
+
+                <div class="clean-metric-grid">
+                    <article class="clean-metric-card"><div class="clean-metric-top"><span>Missing values</span><b class="clean-metric-symbol symbol-amber">!</b></div><strong id="cleanMissingCount">—</strong><small>Empty cells detected</small><div class="clean-metric-track"><span id="cleanMissingBar" class="track-amber"></span></div></article>
+                    <article class="clean-metric-card"><div class="clean-metric-top"><span>Duplicate rows</span><b class="clean-metric-symbol symbol-violet">⧉</b></div><strong id="cleanDuplicateCount">—</strong><small>Repeated records</small><div class="clean-metric-track"><span id="cleanDuplicateBar" class="track-violet"></span></div></article>
+                    <article class="clean-metric-card"><div class="clean-metric-top"><span>Complete columns</span><b class="clean-metric-symbol symbol-teal">✓</b></div><strong id="cleanCompleteCount">—</strong><small>Without missing values</small><div class="clean-metric-track"><span id="cleanCompleteBar" class="track-teal"></span></div></article>
+                    <article class="clean-metric-card"><div class="clean-metric-top"><span>Rows in dataset</span><b class="clean-metric-symbol symbol-blue">▤</b></div><strong id="cleanRowCount">—</strong><small>Current records</small><div class="clean-metric-track"><span id="cleanRowsBar" class="track-blue"></span></div></article>
+                </div>
+
+                <div class="clean-main-grid">
+                    <div class="clean-left-column">
+                        <article class="clean-surface">
+                            <div class="clean-section-heading"><div class="clean-heading-icon">01</div><div><h2>Choose cleaning operations</h2><p>Control how data issues should be handled.</p></div></div>
+                            <form id="cleanForm" class="clean-controls">
+                                <div class="clean-operation">
+                                    <div class="clean-operation-icon amber-icon">∅</div>
+                                    <div class="clean-operation-copy"><strong>Missing values</strong><p>Remove rows that contain missing values.</p></div>
+                                    <label class="clean-toggle" aria-label="Remove rows containing missing values"><input type="checkbox" id="cleanMissing" name="remove_missing"><span></span></label>
+                                </div>
+                                <div class="clean-field-grid">
+                                    <label class="clean-field"><span>Numeric columns</span><select id="numericStrategy" name="num_strategy"><option value="median">Fill with median</option><option value="mean">Fill with mean</option><option value="zero">Fill with zero</option><option value="drop">Drop missing rows</option></select><small>Used when missing values are retained for filling.</small></label>
+                                    <label class="clean-field"><span>Text / category columns</span><select id="categoricalStrategy" name="cat_strategy"><option value="mode">Fill with most common value</option><option value="unknown">Fill with “Unknown”</option><option value="drop">Drop missing rows</option></select><small>Used for text and category fields.</small></label>
+                                </div>
+                                <div class="clean-operation clean-operation-last">
+                                    <div class="clean-operation-icon violet-icon">⧉</div>
+                                    <div class="clean-operation-copy"><strong>Duplicate records</strong><p>Keep the first copy of identical rows.</p></div>
+                                    <label class="clean-toggle" aria-label="Remove duplicate rows"><input type="checkbox" id="cleanDuplicates" name="drop_dupes" checked><span></span></label>
+                                </div>
+                                <div class="clean-warning" id="cleanMissingWarning" hidden>Remove-missing mode deletes rows with missing values instead of filling individual cells.</div>
+                                <div class="clean-action-row"><p>Cleaning updates the active dataset. Use undo to restore the previous version.</p><button class="primary-button" type="submit" id="cleanButton">Run cleaning <span>→</span></button></div>
+                            </form>
+                        </article>
+
+                        <article class="clean-surface">
+                            <div class="clean-section-heading"><div class="clean-heading-icon">02</div><div><h2>Cleaning activity</h2><p>Review the operations returned by the cleaning engine.</p></div></div>
+                            <div id="cleanActivity" class="clean-activity"><div class="clean-activity-empty"><span>✳</span><strong>No cleaning operations yet</strong><p>Your cleaning log appears here after you run a cleaning operation.</p></div></div>
+                            <div class="clean-history-actions"><button class="secondary-button" type="button" id="cleanHistoryButton">View history</button><button class="secondary-button" type="button" id="undoCleanButton">↶ Undo last cleaning</button></div>
+                            <div id="cleanHistoryResult" class="clean-history-result" aria-live="polite"></div>
+                        </article>
+                    </div>
+
+                    <div class="clean-right-column">
+                        <article class="clean-surface">
+                            <div class="clean-section-heading"><div class="clean-heading-icon">03</div><div><h2>Quality snapshot</h2><p>Completeness and common data issues.</p></div></div>
+                            <div class="clean-quality-score"><div class="clean-score-ring" id="cleanScoreRing"><div><strong id="cleanQualityScore">—</strong><small>COMPLETE</small></div></div><div><strong id="cleanQualityLabel">Waiting for data</strong><p id="cleanQualityDescription">Load a dataset to calculate completeness.</p></div></div>
+                            <div id="cleanQualityDetails" class="clean-quality-details"><div class="clean-quality-empty">Quality details will appear here.</div></div>
+                        </article>
+
+                        <article class="clean-surface">
+                            <div class="clean-section-heading"><div class="clean-heading-icon">04</div><div><h2>Before vs. after</h2><p>Compare rows, missing cells and duplicates.</p></div></div>
+                            <div class="clean-comparison">
+                                <div class="clean-comparison-column"><span class="comparison-label">BEFORE</span><strong id="cleanBeforeRows">—</strong><small>Rows</small><div class="comparison-stat"><span>Missing</span><b id="cleanBeforeMissing">—</b></div><div class="comparison-stat"><span>Duplicates</span><b id="cleanBeforeDuplicates">—</b></div></div>
+                                <div class="clean-comparison-divider">→</div>
+                                <div class="clean-comparison-column after-column"><span class="comparison-label">AFTER</span><strong id="cleanAfterRows">—</strong><small>Rows</small><div class="comparison-stat"><span>Missing</span><b id="cleanAfterMissing">—</b></div><div class="comparison-stat"><span>Duplicates</span><b id="cleanAfterDuplicates">—</b></div></div>
+                            </div>
+                            <div id="cleanResult" class="clean-result-message" aria-live="polite">Run a cleaning operation to see the results here.</div>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INSIGHTS -->
+        <section class="screen" id="screen-insights" hidden>
+            <div class="page-container">
+                <div class="page-heading"><div class="eyebrow"><i></i> DATA EXPLORATION</div><h1>Insights & analysis</h1><p class="page-description">Review observations, numeric statistics and data quality for the active dataset.</p></div>
+                <div id="insightsResult" class="insights-grid"><div class="empty-state">Load a dataset to generate insights.</div></div>
+                <div class="section-heading"><div><h2>Data quality snapshot</h2><p>Missingness, duplicates and column-level details.</p></div></div>
+                <div class="panel table-panel"><div id="qualityResult" class="table-wrap"><div class="empty-state">Load a dataset to review data quality.</div></div></div>
+            </div>
+        </section>
+
+        <!-- SQL LAB -->
+        <section class="screen" id="screen-sql" hidden>
+            <div class="page-container">
+                <div class="page-heading"><div class="eyebrow"><i></i> QUERY WORKSPACE</div><h1>Ask your data <span>directly.</span></h1><p class="page-description">Write SQL queries against the currently loaded dataset.</p></div>
+                <div class="panel sql-panel">
+                    <div class="panel-heading"><div><h3>SQL editor</h3><p>Queries depend on the SQL engine configured in this project.</p></div><span class="chart-chip">SQL LAB</span></div>
+                    <label class="sr-only" for="sqlQuery">SQL query</label>
+                    <textarea id="sqlQuery" class="sql-editor" spellcheck="false">SELECT * FROM data LIMIT 10;</textarea>
+                    <div class="sql-actions"><span class="muted-text">Tip: the active dataset is available as <code>data</code>. Queries are read-only.</span><button type="button" class="primary-button" id="runSql">Run query →</button></div>
+                    <div class="preset-heading"><h3>Quick queries</h3><span>SELECT A PRESET TO FILL THE EDITOR</span></div>
+                    <div class="query-presets" id="queryPresets">
+                        <button type="button" class="query-preset" data-query-type="top5">Top 5 rows <span>↗</span></button>
+                        <button type="button" class="query-preset" data-query-type="last5">Last 5 rows <span>↗</span></button>
+                        <button type="button" class="query-preset" data-query-type="rowcount">Row count <span>↗</span></button>
+                        <button type="button" class="query-preset" data-query-type="missing">Missing values <span>↗</span></button>
+                        <button type="button" class="query-preset" data-query-type="duplicates">Duplicate rows <span>↗</span></button>
+                        <button type="button" class="query-preset" data-query-type="sort">Sort numeric values <span>↗</span></button>
+                        <button type="button" class="query-preset" data-query-type="group">Group by category <span>↗</span></button>
+                        <button type="button" class="query-preset" data-query-type="mean">Average <span>↗</span></button>
+                        <button type="button" class="query-preset" data-query-type="max">Maximum <span>↗</span></button>
+                        <button type="button" class="query-preset" data-query-type="min">Minimum <span>↗</span></button>
+                        <button type="button" class="query-preset" data-query-type="sum">Sum <span>↗</span></button>
+                        <button type="button" class="query-preset" data-query-type="count">Count values <span>↗</span></button>
+                    </div>
+                    <div id="sqlResult" class="table-wrap"><div class="empty-state">Query results will appear here.</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXPORT -->
+        <section class="screen" id="screen-export" hidden>
+            <div class="page-container">
+                <div class="page-heading"><div class="eyebrow"><i></i> TAKE YOUR WORK WITH YOU</div><h1>Export your <span>results.</span></h1><p class="page-description">Download the active dataset or a structured analysis report.</p></div>
+                <div class="export-grid">
+                    <article class="panel export-card"><span class="export-icon green">CSV</span><h3>Cleaned dataset</h3><p>Export the current active dataset as a CSV file.</p><a href="/api/export/csv" class="primary-button">Download CSV ↓</a></article>
+                    <article class="panel export-card"><span class="export-icon purple">XLS</span><h3>Excel report</h3><p>Download a workbook with your dataset and analysis.</p><a href="/api/export/excel" class="primary-button">Download Excel ↓</a></article>
+                    <article class="panel export-card"><span class="export-icon blue">{ }</span><h3>Analysis report</h3><p>Download a JSON report containing quality and profiling results.</p><a href="/api/export/report" class="primary-button">Download JSON ↓</a></article>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<div id="appToast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
